@@ -59,4 +59,7 @@ Notes:
 	- if the original photo is not available, the script try an download the next available bigger size
 	- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension
 
+![console](http://saeros.be/images/tumblrdl/tumblrdl-console.png)
+![finder](http://saeros.be/images/tumblrdl/tumblrdl-finder.png)
+
 ENJOY
