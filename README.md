@@ -2,10 +2,12 @@ SCRIPT - tumblrdl.php
 
 This script enables batch download of a Tumblr blog using the official API.
 For more information use the source, Luke!.
-@see http://www.tumblr.com/api/
 
-@version 0.2
-@author saeros <saeros001@gmail.com>
+see http://www.tumblr.com/api/
+
+version 0.2
+
+author saeros <saeros001@gmail.com>
 
 Copyright (c) 2012 saeros
  
@@ -27,8 +29,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS 
 IN THE SOFTWARE.
 
+Important note!
 
-Usage: php tumblrdl.php -b <blog_name>
+You need to change the API_KEY in the script. You can get one on the official site.
+
+Usage: php tumblrdl.php -b blog_name
 
 	-b <blog_name> (or --blog <blogname>)	*required* the blog name (e.g 'brainmess')
 	-o=<offset> (or --offset=<offset>)		*optional* the number of posts to skip before starting download (e.g. 100)
