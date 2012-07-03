@@ -31,7 +31,7 @@ IN THE SOFTWARE.
 
 Important note!
 
-You need to change the API_KEY in the script. You can get one on the official site.
+If you have your own API key change it in the script define (the one provided is from api examples).
 
 Usage: php tumblrdl.php -b blog_name
 
