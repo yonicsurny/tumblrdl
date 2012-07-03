@@ -48,8 +48,6 @@ $longopts = array('blog:', 'directory::', 'offset::', 'limit::', 'unlimited', 'h
 
 $options = getopt($shortopts, $longopts);
 
-var_dump($options);
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // DOWNLOADER
