@@ -37,9 +37,12 @@ Output:
 
 	Call examples:
 
-		php tumblrdl.php -b brainmess -u (download every photo available)
-		php tumblrdl.php -b brainmess -l=50 (download the last 50 photos)
-		php tumblrdl.php --blog brainmess --offset=100 --limit=50 --directory=/Users/username/Desktop (download 50 photos on the desktop by skipping the last 100 posts)
+		php tumblrdl.php -b brainmess -u 
+			(download every photo available)
+		php tumblrdl.php -b brainmess -l=50 
+			(download the last 50 photos)
+		php tumblrdl.php --blog brainmess --offset=100 --limit=50 --directory=/Users/username/Desktop 
+			(download 50 photos on the desktop by skipping the last 100 posts)
 		...
 
 	Notes:
