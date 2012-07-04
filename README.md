@@ -1,12 +1,9 @@
 #TumblrDownloader
----
 ##Overview
 **TumblrDownloader** enables batch download of a [Tumblr](http://www.tumblr.com/) blog using the [official API](http://www.tumblr.com/api/
 ).
 
 For more information use the source, Luke!.
-
----
 
 ##Usage
 ###Basic
@@ -81,13 +78,9 @@ IN THE SOFTWARE.
 
 If you have your own API key change it in the script define (the one provided is from api examples).
 
----
-
 ##Screenshots
 ![console](http://saeros.be/images/tumblrdl/tumblrdl-console.png)
 ![finder](http://saeros.be/images/tumblrdl/tumblrdl-finder.png)
-
----
 
 Follow [@saeros01](http://twitter.com/saeros01) on Twitter for the latest news.
 
