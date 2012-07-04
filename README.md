@@ -82,8 +82,8 @@ IN THE SOFTWARE.
 If you have your own API key change it in the script define (the one provided is from api examples).
 
 ##Screenshots
-![console](http://saeros.be/images/tumblrdl/tumblrdl-console.png)
-![finder](http://saeros.be/images/tumblrdl/tumblrdl-finder.png)
+![console](http://saeros.be/images/tumblrdl/tumblrdl-console-2.png)
+![finder](http://saeros.be/images/tumblrdl/tumblrdl-finder-2.png)
 
 Follow [@saeros01](http://twitter.com/saeros01) on Twitter for the latest news.
 
