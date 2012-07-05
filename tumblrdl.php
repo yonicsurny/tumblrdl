@@ -6,7 +6,7 @@
  * For more information use the source, Luke!.
  * @see http://www.tumblr.com/api/
  * 
- * @version 0.2
+ * @version 0.3
  * @author saeros <saeros001@gmail.com>
  *
  * Copyright (c) 2012 saeros
@@ -112,6 +112,9 @@ class TumblrDownloader
 
         $this->blog_name = ((array_key_exists("b", $options)) ? $options['b'] : $options['blog']);
 
+        $date_string = $this->date_now_string();
+        echo "$date_string - Blog name: $this->blog_name\n";
+
 
         /* setup download directory */
 
@@ -184,9 +187,21 @@ class TumblrDownloader
     {
         $this->loop_through_posts();
 
-        echo "\nDONE!\n";
+        $date_string = $this->date_now_string();
+        echo "$date_string - DONE!\n";
 
         exit(0);
+    }
+
+    /** date_now_string
+    * 
+    * @since 0.3
+    * @description provide a formated string of the current date
+    * @return string
+    */
+    private function date_now_string() 
+    {
+        return date("Y-m-d H:i:s");
     }
 
     /** download_photo
