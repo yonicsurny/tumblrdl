@@ -5,6 +5,10 @@
 
 For more information use the source, Luke!.
 
+####Important note
+
+If you have your own API key change it in the script define (the one provided is from api examples).
+
 
 ##License
 ###MIT
@@ -39,7 +43,7 @@ Run the following command in a terminal:
 Replace blog_name by the desired blog name (e.g. brainmess).
 
 ###Advanced
-Several options or available, for detailed help and usage examples run the following command:
+Several options are available, for detailed help and usage examples run the following command:
 
 	php tumblrdl.php -h (or --help)
 	
@@ -88,10 +92,6 @@ Using `crontab -e`enter the following:
 
 	# m  h dom mon dow user	command
 	*/30 *   *   *   * cd ~/Desktop/tumblr/ && /bin/bash ./tumblrdl_process.sh > ./tumblrdl_process.log 2> ./tumblrdl_process_error.log
-
-####Important note
-
-If you have your own API key change it in the script define (the one provided is from api examples).
 
 ##Screenshots
 ![console](http://saeros.be/images/tumblrdl/tumblrdl-console-2.png)
