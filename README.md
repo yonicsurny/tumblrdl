@@ -57,6 +57,8 @@ Output:
 			*optional* the path to the download directory - by default script directory (e.g. /Users/username/Desktop)
 		-u (or --unlimited)
 			*optional* a flag to tell the script to download every photo available (might take a while ^^)
+		-c (or --continue)
+			*optional* a flag to tell the script to continue even if it encounters existing files
 		-h (or --help)
 			*help* print this help
 
@@ -76,7 +78,7 @@ Output:
 		- do not specify an option more than once (unexpected behavior might occur)
 		- the 'offset' and 'limit' refers to the post count, not the photo count! as there may be more than one photo in a post.
 		- download directory path must be absolute (/Users/username/Desktop instead of ~/Desktop)
-		- once the script encounters an already downloaded photo (test for an existing file) it will stop.
+		- once the script encounters an already downloaded photo (test for an existing file) it will stop (except when -c or --continue option is used)
 		- if the original photo is not available, the script try an download the next available bigger size
 		- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension
 
@@ -84,10 +86,10 @@ Output:
 
 You can even add a [cron job](http://corenominal.org/howto-setup-a-crontab-file/) to perform the download process of all your favorite blog photos using the given `tumblrdl_process.sh`bash script.
 
-Using `crontab -e`enter the following:
+Using `crontab -e`enter the following (launch download every hour):
 
 	# m  h dom mon dow user	command
-	*/30 *   *   *   * cd ~/Desktop/tumblr/ && /bin/bash ./tumblrdl_process.sh > ./tumblrdl_process.log 2> ./tumblrdl_process_error.log
+	0 *   *   *   * cd ~/Desktop/tumblr/ && /bin/bash ./tumblrdl_process.sh > ./tumblrdl_process.log 2> ./tumblrdl_process_error.log
 
 ####Important note
 

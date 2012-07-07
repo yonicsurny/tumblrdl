@@ -35,7 +35,7 @@
 
 //error_reporting(E_ALL);
 //ini_set('display_errors', 1);
-date_default_timezone_set('UTC');
+date_default_timezone_set('europe/brussels');
 define('API_KEY', 'PyezS3Q4Smivb24d9SzZGYSuhMNPQUhMsVetMC9ksuGPkK1BTt');
 define('API_LIMIT', 20);
 
@@ -43,8 +43,8 @@ define('API_LIMIT', 20);
 ///////////////////////////////////////////////////////////////////////////////
 // OPTIONS
 
-$shortopts = "b:d::o::l::uh";
-$longopts = array('blog:', 'directory::', 'offset::', 'limit::', 'unlimited', 'help');
+$shortopts = "b:d::o::l::uch";
+$longopts = array('blog:', 'directory::', 'offset::', 'limit::', 'unlimited', 'continue', 'help');
 
 $options = getopt($shortopts, $longopts);
 
@@ -59,6 +59,7 @@ class TumblrDownloader
     private $offset;
     private $limit;
     private $unlimited;
+    private $continue;
     private $counter;
     
     function __construct($arguments, $arguments_count, $options)
@@ -74,6 +75,7 @@ class TumblrDownloader
             echo "\t-l=<limit> (or --limit=<limit>)\t\t*optional* the number of post parsed in each run - by default 20 (e.g. 50)\n";
             echo "\t-d=<path> (or --directory=<path>)\t*optional* the path to the download directory - by default script directory (e.g. /Users/username/Desktop)\n";
             echo "\t-u (or --unlimited)\t\t\t*optional* a flag to tell the script to download every photo available (might take a while ^^)\n";
+            echo "\t-c (or --continue)\t\t\t*optional* a flag to tell the script to continue even if it encounters existing files\n";
             echo "\t-h (or --help)\t\t\t\t*help* print this help\n\n";
 
             echo "Call examples:\n\n";
@@ -89,7 +91,7 @@ class TumblrDownloader
             echo "\t- do not specify an option more than once (unexpected behavior might occur)\n";
             echo "\t- the 'offset' and 'limit' refers to the post count, not the photo count! as there may be more than one photo in a post.\n";
             echo "\t- download directory path must be absolute (/Users/username/Desktop instead of ~/Desktop)\n";
-            echo "\t- once the script encounters an already downloaded photo (test for an existing file) it will stop.\n";
+            echo "\t- once the script encounters an already downloaded photo (test for an existing file) it will stop (except when -c or --continue option is used)\n";
             echo "\t- if the original photo is not available, the script try an download the next available bigger size\n";
             echo "\t- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension\n";
 
@@ -112,9 +114,6 @@ class TumblrDownloader
 
         $this->blog_name = ((array_key_exists("b", $options)) ? $options['b'] : $options['blog']);
 
-        $date_string = $this->date_now_string();
-        echo "$date_string - Blog name: $this->blog_name\n";
-
 
         /* setup download directory */
 
@@ -133,7 +132,8 @@ class TumblrDownloader
         }
         if (!is_dir($this->download_directory)) 
         {
-            echo "ERROR: given download directory path ($this->download_directory) doesn't exist, is not a directory or is not accesible (possibly permission denied)!\n";
+            $date_string = $this->date_now_string();
+            echo "[$date_string] $this->blog_name > ERROR: given download directory path ($this->download_directory) doesn't exist, is not a directory or is not accesible (possibly permission denied)!\n";
 
             exit(1);
         }
@@ -142,7 +142,9 @@ class TumblrDownloader
         if (!file_exists($this->download_directory)) 
         {
             mkdir($this->download_directory); //create blog directory
-            echo "STEP: created blog directory!\n";
+
+            $date_string = $this->date_now_string();
+            echo "[$date_string] $this->blog_name > created blog directory!\n";
         }
 
 
@@ -173,6 +175,15 @@ class TumblrDownloader
         }
 
 
+        /* continue */
+
+        $this->continue = false;
+        if (array_key_exists('c', $options) || array_key_exists('continue', $options)) 
+        {
+            $this->continue = true;
+        }
+
+
         /* counter */
 
         $this->counter = 0;
@@ -188,7 +199,7 @@ class TumblrDownloader
         $this->loop_through_posts();
 
         $date_string = $this->date_now_string();
-        echo "$date_string - DONE!\n";
+        echo "[$date_string] $this->blog_name > Finished downloading photos ($this->counter photo(s) downloaded)\n";
 
         exit(0);
     }
@@ -216,7 +227,8 @@ class TumblrDownloader
         $output = @fopen($download_path, "wb");
         if ($output == FALSE) 
         {
-            echo "-- could not open file at path: " . $download_path . "!\n";
+            $date_string = $this->date_now_string();
+            echo "[$date_string] $this->blog_name > ... could not open file at path: " . $download_path . "!\n";
 
             return;
         }
@@ -230,12 +242,16 @@ class TumblrDownloader
         $error = curl_error($ch);
         if (!empty($error)) 
         {
-            echo "-- an error occured: " . $error . "\n";
+            $date_string = $this->date_now_string();
+            echo "[$date_string] $this->blog_name > ... an error occured: " . $error . "\n";
         }
         else 
         {
             $this->counter++;
-            echo "-- downloaded ($this->counter)\n";
+
+            $date_string = $this->date_now_string();
+            $counter_string = sprintf("%03d", $this->counter);
+            echo "[$date_string] $this->blog_name > ... downloaded [$counter_string]\n";
         }
 
         curl_close($ch);
@@ -311,25 +327,38 @@ class TumblrDownloader
                     if (empty($pathinfo['extension'])) 
                     {
                         /* no winner found - skipping photo */
-
-                        echo "-- skipping photo - no valid url found!\n";
+                        $date_string = $this->date_now_string();
+                        echo "[$date_string] $this->blog_name > ... skipping photo - no valid url found!\n";
 
                         continue;
                     }
 
                     $file_name = $year.$month.$day."_".$pathinfo['basename'];// yyyymmdd_basename.extension
-                    echo "filename: $file_name\n";
+
+                    $date_string = $this->date_now_string();
+                    echo "[$date_string] $this->blog_name > $file_name\n";
+
                     $download_path = $current_directory.DIRECTORY_SEPARATOR.$file_name;// concat download_directory with file_name
+
+                    $found = false;
                     if (is_file($download_path)) 
                     {
                         /* file already exist - abort and exit */
 
-                        echo "-- already exists!\n";
+                        $found = true;
 
-                        return;
+                        $date_string = $this->date_now_string();
+                        echo "[$date_string] $this->blog_name > ... already exists!\n";
+
+                        if (!$this->continue) 
+                        {
+                            return;
+                        }
                     }
-
-                    $this->download_photo($photo_url, $download_path);
+                    if (!$found) 
+                    {
+                        $this->download_photo($photo_url, $download_path);
+                    }
                 }
             }
 
@@ -362,9 +391,10 @@ class TumblrDownloader
 
         if (is_null($json_output) || $json_output->meta->status == 404) 
         {
-            echo "ERROR: Could not find blog named '$this->blog_name'!\n";
+            $date_string = $this->date_now_string();
+            echo "[$date_string] $this->blog_name > ERROR: Could not find blog named '$this->blog_name'!\n";
 
-            exit(1);
+            return array();
         }
 
         return $json_output->response->posts;
