@@ -86,7 +86,7 @@ Output:
 		- if the original photo is not available, the script try an download the next available bigger size
 		- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension
 
-###CRON
+##CRON
 
 You can even add a [cron job](http://corenominal.org/howto-setup-a-crontab-file/) to perform the download process of all your favorite blog photos using the given `tumblrdl_process.sh`bash script.
 
@@ -94,6 +94,11 @@ Using `crontab -e`enter the following (launch download every hour):
 
 	# m  h dom mon dow user	command
 	0 *   *   *   * cd ~/Desktop/tumblr/ && /bin/bash ./tumblrdl_process.sh > ./tumblrdl_process.log 2> ./tumblrdl_process_error.log
+
+##Troubleshooting
+On Ubuntu, PHP doesn't come with CURL which is used to perform the images donwload in the script. If the script fails with a fatal error claiming that the `curl_init()` function is undefined then you need to install curl. Running the following command (or similar for other linux distribution) should fix the problem.
+
+	sudo apt-get install php5-curl
 
 ##Screenshots
 ![console](http://saeros.be/images/tumblrdl/tumblrdl-console-2.png)
