@@ -35,7 +35,7 @@
 
 //error_reporting(E_ALL);
 //ini_set('display_errors', 1);
-date_default_timezone_set('europe/brussels');
+date_default_timezone_set('Europe/Brussels');
 define('API_KEY', 'PyezS3Q4Smivb24d9SzZGYSuhMNPQUhMsVetMC9ksuGPkK1BTt');
 define('API_LIMIT', 20);
 
