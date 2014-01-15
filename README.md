@@ -107,3 +107,5 @@ On Ubuntu, PHP doesn't come with CURL which is used to perform the images donwlo
 Follow [@saeros01](http://twitter.com/saeros01) on Twitter for the latest news.
 
 ###ENJOY :-)
+
+[![endorse](https://api.coderwall.com/saeros/endorsecount.png)](https://coderwall.com/saeros)
