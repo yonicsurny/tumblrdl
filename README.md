@@ -103,8 +103,8 @@ On Ubuntu, PHP doesn't come with CURL which is used to perform the images donwlo
 	sudo apt-get install php5-curl
 
 ##Screenshots
-![console](http://saeros.be/images/tumblrdl/tumblrdl-console-2.png)
-![finder](http://saeros.be/images/tumblrdl/tumblrdl-finder-2.png)
+![console](screenshots/tumblrdl-console-2.png)
+![finder](screenshots/tumblrdl-finder-2.png)
 
 Follow [@saeros01](http://twitter.com/saeros01) on Twitter for the latest news.
 
