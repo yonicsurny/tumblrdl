@@ -6,7 +6,7 @@
  * For more information use the source, Luke!.
  * @see http://www.tumblr.com/api/
  * 
- * @version 0.3
+ * @version 0.4
  * @author saeros <yonic.surny@gmail.com>
  *
  * Copyright (c) 2012 saeros
