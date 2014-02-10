@@ -7,7 +7,9 @@ For more information use the source, Luke!.
 
 ####Important note
 
-If you have your own API key change it in the script define (the one provided is from api examples).
+In order for the script to work you need to register an app on the [Tumblr API](http://www.tumblr.com/oauth/apps) (it only takes seconds) and then replace the value in the script.
+
+	define('API_KEY', 'REPLACE_ME');
 
 
 ##License

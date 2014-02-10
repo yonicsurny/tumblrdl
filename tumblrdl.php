@@ -7,7 +7,7 @@
  * @see http://www.tumblr.com/api/
  * 
  * @version 0.3
- * @author saeros <saeros001@gmail.com>
+ * @author saeros <yonic.surny@gmail.com>
  *
  * Copyright (c) 2012 saeros
  * 
@@ -36,7 +36,7 @@
 //error_reporting(E_ALL);
 //ini_set('display_errors', 1);
 date_default_timezone_set('Europe/Brussels');
-define('API_KEY', 'PyezS3Q4Smivb24d9SzZGYSuhMNPQUhMsVetMC9ksuGPkK1BTt');
+define('API_KEY', 'REPLACE_ME');
 define('API_LIMIT', 20);
 
 
