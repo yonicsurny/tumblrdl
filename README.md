@@ -1,7 +1,10 @@
 #TumblrDownloader
 
-##Overview
-**TumblrDownloader** enables batch download of a [Tumblr](http://www.tumblr.com/) blog using the [official API](http://www.tumblr.com/api/).
+| Console | Finder |
+|:-------:|:------:|
+| ![console](screenshots/tumblrdl-console-2.png) | ![finder](screenshots/tumblrdl-finder-2.png) |
+
+Enables batch download of a [Tumblr](http://www.tumblr.com/) blog using the [official API](http://www.tumblr.com/api/).
 
 For more information use the source, Luke!.
 
@@ -13,27 +16,7 @@ In order for the script to work you need to register an app on the [Tumblr API](
 
 
 ##License
-###MIT
-
-Copyright (c) 2012 saeros
- 
-Permission is hereby granted, free of charge, to any person obtaining a copy<br />
-of this software and associated documentation files (the "Software"), to<br />
-deal in the Software without restriction, including without limitation the<br />
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or<br />
-sell copies of the Software, and to permit persons to whom the Software is<br />
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in<br />
-all copies or substantial portions of the Software.
- 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR<br />
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,<br />
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE<br />
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER<br/>
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING<br />
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS<br />
-IN THE SOFTWARE.
+See the `LICENSE`file.
 
 
 ##Usage
@@ -96,18 +79,3 @@ Using `crontab -e`enter the following (launch download every hour):
 
 	# m  h dom mon dow user	command
 	0 *   *   *   * cd ~/Desktop/tumblr/ && /bin/bash ./tumblrdl_process.sh > ./tumblrdl_process.log 2> ./tumblrdl_process_error.log
-
-##Troubleshooting
-On Ubuntu, PHP doesn't come with CURL which is used to perform the images donwload in the script. If the script fails with a fatal error claiming that the `curl_init()` function is undefined then you need to install curl. Running the following command (or similar for other linux distribution) should fix the problem.
-
-	sudo apt-get install php5-curl
-
-##Screenshots
-![console](screenshots/tumblrdl-console-2.png)
-![finder](screenshots/tumblrdl-finder-2.png)
-
-Follow [@saeros01](http://twitter.com/saeros01) on Twitter for the latest news.
-
-###ENJOY :-)
-
-[![endorse](https://api.coderwall.com/saeros/endorsecount.png)](https://coderwall.com/saeros)
