@@ -1,4 +1,4 @@
-#TumblrDownloader
+# TumblrDownloader
 
 | Console | Finder |
 |:-------:|:------:|
@@ -8,26 +8,26 @@ Enables batch download of a [Tumblr](http://www.tumblr.com/) blog using the [off
 
 For more information use the source, Luke!.
 
-####Important note
+
+#### Important note
 
 In order for the script to work you need to register an app on the [Tumblr API](http://www.tumblr.com/oauth/apps) (it only takes seconds) and then replace the value in the script.
 
 	define('API_KEY', 'REPLACE_ME');
 
 
-##License
-See the `LICENSE`file.
 
+## Usage
 
-##Usage
-###Basic
+### Basic
+
 Run the following command in a terminal:
 
 	php tumblrdl.php -b blog_name
 
 Replace blog_name by the desired blog name (e.g. brainmess).
 
-###Advanced
+### Advanced
 Several options are available, for detailed help and usage examples run the following command:
 
 	php tumblrdl.php -h (or --help)
@@ -71,11 +71,22 @@ Output:
 		- if the original photo is not available, the script try an download the next available bigger size
 		- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension
 
-##CRON
 
-You can even add a [cron job](http://corenominal.org/howto-setup-a-crontab-file/) to perform the download process of all your favorite blog photos using the given `tumblrdl_process.sh`bash script.
+## TODO
 
-Using `crontab -e`enter the following (launch download every hour):
+* <s>Create a TODO list</s>;
+* Whitelist / blacklist of accepted file extensions (e.g. forbiding `.gif` files).
 
-	# m  h dom mon dow user	command
-	0 *   *   *   * cd ~/Desktop/tumblr/ && /bin/bash ./tumblrdl_process.sh > ./tumblrdl_process.log 2> ./tumblrdl_process_error.log
+
+## License
+
+See the `LICENSE` file.
+
+
+## Contributing
+
+You know the drill:
+
+1. Fork
+2. Modify
+3. Pull request
