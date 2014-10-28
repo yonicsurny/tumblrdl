@@ -72,6 +72,11 @@ Output:
 		- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension
 
 
+## FAQ
+
+See the [Wiki FAQ page](https://github.com/saeros/tumblrdl/wiki/FAQ).
+
+
 ## TODO
 
 * <s>Create a TODO list</s>;
