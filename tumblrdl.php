@@ -104,7 +104,7 @@ class TumblrDownloader {
             echo "\t- once the script encounters an already downloaded photo (test for an existing file) it will stop (except when -c or --continue option is used)\n";
             echo "\t- if the original photo is not available, the script try an download the next available bigger size.\n";
             echo "\t- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension\n";
-            echo "\t- if you use filtes (wallfilter, black/whitelist) you may end up with empty folders as they are created before the download (room for improvement).\n\n";
+            echo "\t- if you use filters (wallfilter, black/whitelist) you may end up with empty folders as they are created before the download (room for improvement).\n\n";
 
             echo "Black/White list:\n\n";
 
@@ -305,7 +305,6 @@ class TumblrDownloader {
             $width = $image_data[0];
             $height = $image_data[1];
             $ratio = $width/$height;
-            $path_info = pathinfo($entry);
 
             if ($width < $height) {
                 $deletion_flag = true;
