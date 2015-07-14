@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 /**
  * SCRIPT - tumblrdl.php
@@ -6,7 +7,7 @@
  * For more information use the source, Luke!.
  * @see http://www.tumblr.com/api/
  * 
- * @version 0.5
+ * @version 0.6
  * @author saeros <yonic.surny@gmail.com>
  *
  * Copyright (c) 2012 saeros
@@ -38,11 +39,20 @@
 // ini_set('display_errors', 1);
 
 date_default_timezone_set('Europe/Brussels');
-define('API_KEY', 'REPLACE_ME');
-define('API_LIMIT', 20);
-define('MIN_WIDTH', 800);
-define('MIN_RATIO', 1.3);
-define('MAX_RATIO', 1.8);
+define('API_KEY',               'REPLACE_ME');
+define('MIN_PAD',               10);
+define('API_LIMIT',             20);
+define('MAX_RATIO',             1.8);
+define('MIN_RATIO',             1.3);
+define('MIN_WIDTH',             800);
+define('TERM_RESET',            "\033[0m");
+define('TERM_UNDERLINE',        "\033[4m");
+define('TERM_COLOR_RED',        "\033[31m");
+define('TERM_COLOR_BLUE',       "\033[34m");
+define('TERM_COLOR_GREEN',      "\033[32m");
+define('TERM_COLOR_YELLOW',     "\033[33m");
+define('TERM_SAVE_POSITION',    "\0337");
+define('TERM_RESTORE_POSITION', "\0338");
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,62 +76,60 @@ class TumblrDownloader {
     private $limit;
     private $unlimited;
     private $continue;
-    private $counter;
+    private $counter_processed;
+    private $counter_downloaded;
     private $wallfilter;
     private $whitelist;
     private $blacklist;
+    private $file_name;
     
     function __construct($arguments, $arguments_count, $options) {
         // test for usage and print help
-        if (count($options) == 0 | array_key_exists("help", $options) || array_key_exists("h", $options)) {
-            echo "Usage: php $arguments[0] -b <blog_name>\n\n";
+        if (array_key_exists("help", $options) || array_key_exists("h", $options)) {
+            fwrite(STDOUT, TERM_UNDERLINE . "Usage:" . TERM_RESET . " php $arguments[0] -b <blog_name>" . PHP_EOL . PHP_EOL);
 
-            echo "\t-b <blog_name> (or --blog <blogname>)\t*required* the blog name (e.g 'brainmess')\n";
-            echo "\t-o=<offset> (or --offset=<offset>)\t*optional* the number of posts to skip before starting download (e.g. 100)\n";
-            echo "\t-l=<limit> (or --limit=<limit>)\t\t*optional* the number of post parsed in each run - by default 20 (e.g. 50)\n";
-            echo "\t-d=<path> (or --directory=<path>)\t*optional* the path to the download directory - by default script directory (e.g. /Users/username/Desktop)\n";
-            echo "\t-u (or --unlimited)\t\t\t*optional* a flag to tell the script to download every photo available (might take a while ^^)\n";
-            echo "\t-c (or --continue)\t\t\t*optional* a flag to tell the script to continue even if it encounters existing files\n";
-            echo "\t-h (or --help)\t\t\t\t*help* print this help\n";
-            echo "\t--wallfilter\t\t\t\tapply filter for only downloading photos that might be used as wallpapers (checks: landscape, ratio, dimensions)\n";
-            echo "\t--blacklist=<gif,webm>\t\t\textensions of files NOT to download (separated by commas (,) with no space)\n";
-            echo "\t--whitelist=<jpg,png>\t\t\textensions of files to download (separated by commas (,) with no space)\n\n";
+            fwrite(STDOUT, "\t-b <blog_name> (or --blog <blogname>)\t" . TERM_COLOR_YELLOW . "*required*" . TERM_RESET . " the blog name (e.g 'brainmess')" . PHP_EOL);
+            fwrite(STDOUT, "\t-o=<offset> (or --offset=<offset>)\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the number of posts to skip before starting download (e.g. 100)" . PHP_EOL);
+            fwrite(STDOUT, "\t-l=<limit> (or --limit=<limit>)\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the number of post parsed in each run - by default 20 (e.g. 50)" . PHP_EOL);
+            fwrite(STDOUT, "\t-d=<path> (or --directory=<path>)\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the path to the download directory - by default script directory (e.g. /Users/username/Desktop)" . PHP_EOL);
+            fwrite(STDOUT, "\t-u (or --unlimited)\t\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " a flag to tell the script to download every photo available (might take a while ^^)" . PHP_EOL);
+            fwrite(STDOUT, "\t-c (or --continue)\t\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " a flag to tell the script to continue even if it encounters existing files" . PHP_EOL);
+            fwrite(STDOUT, "\t--wallfilter\t\t\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " apply filter for only downloading photos that might be used as wallpapers (checks: landscape, ratio, dimensions)" . PHP_EOL);
+            fwrite(STDOUT, "\t--blacklist=<extensions>\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " extensions of files " . TERM_UNDERLINE . "NOT" . TERM_RESET . " to download (separated by commas (,) with no space)" . PHP_EOL);
+            fwrite(STDOUT, "\t--whitelist=<extensions>\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " extensions of files to download (separated by commas (,) with no space)" . PHP_EOL);
+            fwrite(STDOUT, "\t-h (or --help)\t\t\t\tprints this help" . PHP_EOL . PHP_EOL);
 
-            echo "Call examples:\n\n";
+            fwrite(STDOUT, TERM_UNDERLINE . "Examples:" . TERM_RESET . PHP_EOL . PHP_EOL);
 
-            echo "\tphp $arguments[0] -b brainmess -u (download every photo available)\n";
-            echo "\tphp $arguments[0] -b brainmess -l=50 (download the last 50 photos)\n";
-            echo "\tphp $arguments[0] -b brainmess --wallfilter --whitelist=jpg,png (download photos with extension jpg or png that are fit for being wallpapers)\n";
-            echo "\tphp $arguments[0] --blog brainmess --offset=100 --limit=50 --directory=/Users/username/Desktop (download 50 photos on the desktop by skipping the last 100 posts)\n";
-            echo "\t...\n\n";
+            fwrite(STDOUT, "\tphp $arguments[0] -b brainmess -u (download every photo available)" . PHP_EOL);
+            fwrite(STDOUT, "\tphp $arguments[0] -b brainmess -l=50 (download the last 50 photos)" . PHP_EOL);
+            fwrite(STDOUT, "\tphp $arguments[0] -b brainmess --wallfilter --whitelist=jpg,png (download photos with extension jpg or png that are fit for being wallpapers)" . PHP_EOL);
+            fwrite(STDOUT, "\tphp $arguments[0] --blog brainmess --offset=100 --limit=50 --directory=/Users/username/Desktop (download 50 photos on the desktop by skipping the last 100 posts)" . PHP_EOL);
+            fwrite(STDOUT, "\t..." . PHP_EOL . PHP_EOL);
 
-            echo "Notes:\n\n";
+            fwrite(STDOUT, TERM_UNDERLINE . "Notes:" . TERM_RESET . PHP_EOL . PHP_EOL);
 
-            echo "\t- short and long options can be used interchangeably (if available)\n";
-            echo "\t- do not specify an option more than once (unexpected behavior might occur)\n";
-            echo "\t- the 'offset' and 'limit' refers to the post count, not the photo count (!) as there may be more than one photo in a post.\n";
-            echo "\t- download directory path must be absolute (/Users/username/Desktop instead of ~/Desktop)\n";
-            echo "\t- once the script encounters an already downloaded photo (test for an existing file) it will stop (except when -c or --continue option is used)\n";
-            echo "\t- if the original photo is not available, the script try an download the next available bigger size.\n";
-            echo "\t- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension\n";
-            echo "\t- if you use filters (wallfilter, black/whitelist) you may end up with empty folders as they are created before the download (room for improvement).\n\n";
+            fwrite(STDOUT, "\t- short and long options can be used interchangeably (if available)" . PHP_EOL);
+            fwrite(STDOUT, "\t- do not specify an option more than once (unexpected behavior might occur)" . PHP_EOL);
+            fwrite(STDOUT, "\t- the 'offset' and 'limit' refers to the post count, not the photo count (!) as there may be more than one photo in a post." . PHP_EOL);
+            fwrite(STDOUT, "\t- download directory path must be absolute (/Users/username/Desktop instead of ~/Desktop)" . PHP_EOL);
+            fwrite(STDOUT, "\t- once the script encounters an already downloaded photo (test for an existing file) it will stop (except when -c or --continue option is used)" . PHP_EOL);
+            fwrite(STDOUT, "\t- if the original photo is not available, the script try an download the next available bigger size." . PHP_EOL);
+            fwrite(STDOUT, "\t- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension" . PHP_EOL);
+            fwrite(STDOUT, "\t- if you use filters (wallfilter, black/whitelist) you may end up with empty folders as they are created before the download (room for improvement)." . PHP_EOL . PHP_EOL);
+            fwrite(STDOUT, "\t- the script checks first if the file's extension is in the blacklist and then in the whitelist therefore if you both allow and deny an extension it will be denied." . PHP_EOL);
+            fwrite(STDOUT, "\t- the script converts extension to lowercase so you don't have to worray wheter it is JPG or jpg..." . PHP_EOL);
 
-            echo "Black/White list:\n\n";
-
-            echo "\t- the script checks first if the file's extensions is in the blacklist and then in the whitelist therefore if you both allow and deny an extension it will be denied!\n";
-            echo "\t- the script converts extension to lowercase so you don't have to worray wheter it is JPG or jpg...\n";
-
-
-            exit(0);
+            die(0);
         }
 
 
         // test presence of required fields (blog_name)
         if (!array_key_exists("b", $options) && !array_key_exists("blog", $options)) {
-            echo "ERROR: Bad usage!\n";
-            echo "\tsee $arguments[0] -h (or --help) for usage\n";
+            fwrite(STDERR, TERM_UNDERLINE . TERM_COLOR_RED . "ERROR:" . TERM_RESET . " Bad usage!" . PHP_EOL);
+            fwrite(STDERR, "\tsee php $arguments[0] -h (or --help) for usage" . PHP_EOL);
 
-            exit(1);
+            die(1);
         }
 
 
@@ -142,9 +150,9 @@ class TumblrDownloader {
         }
         if (!is_dir($this->download_directory)) {
             $date_string = $this->date_now_string();
-            echo "[$date_string] $this->blog_name > ERROR: given download directory path ($this->download_directory) doesn't exist, is not a directory or is not accesible (possibly permission denied)!\n";
+            fwrite(STDERR, "[$date_string] $this->blog_name > " . TERM_UNDERLINE . TERM_COLOR_RED . "ERROR:" . TERM_RESET . " given download directory path ($this->download_directory) doesn't exist, is not a directory or is not accesible (possibly permission denied)!" . PHP_EOL);
 
-            exit(1);
+            die(1);
         }
         $this->download_directory .= DIRECTORY_SEPARATOR . $this->blog_name; // append blog name
 
@@ -152,7 +160,7 @@ class TumblrDownloader {
             mkdir($this->download_directory); // create blog directory
 
             $date_string = $this->date_now_string();
-            echo "[$date_string] $this->blog_name > created blog directory!\n";
+            fwrite(STDOUT, "[$date_string] $this->blog_name > created blog directory!" . PHP_EOL);
         }
 
 
@@ -211,8 +219,9 @@ class TumblrDownloader {
         }
 
 
-        // counter
-        $this->counter = 0;
+        // counters
+        $this->counter_processed = 0;
+        $this->counter_downloaded = 0;
     }
 
     /** process
@@ -221,12 +230,15 @@ class TumblrDownloader {
      * @description public interface to launch the download process
      */
     public function process() {
+        $date_string = $this->date_now_string();
+        fwrite(STDOUT, "[$date_string] Started processing '$this->blog_name'" . PHP_EOL);
+
         $this->loop_through_posts();
 
         $date_string = $this->date_now_string();
-        echo "[$date_string] $this->blog_name > Finished downloading photos ($this->counter photo(s) downloaded)\n";
+        fwrite(STDOUT, "[$date_string] Done processing '$this->blog_name': $this->counter_downloaded/$this->counter_processed photo(s) downloaded." . PHP_EOL);
 
-        exit(0);
+        die(0);
     }
 
     /** date_now_string
@@ -239,6 +251,21 @@ class TumblrDownloader {
         return date("Y-m-d H:i:s");
     }
 
+    /** pad_string
+     * 
+     * @since 0.6
+     * @descritpion get a string composed of dots to pad output to the width of the terminal
+     * @param string $head the string to print before
+     * @param string $tail the string to print after
+     * @return string
+     */
+    private function pad_string($head, $tail) {
+        $term_cols = intval(`tput cols`);
+        $length = $term_cols - strlen($head) - strlen($tail);
+        $length = ($length > MIN_PAD ? $length : MIN_PAD);
+        return str_repeat('.', $length);
+    }
+
     /** download_photo
      * 
      * @since 0.2
@@ -247,13 +274,20 @@ class TumblrDownloader {
      * @param string $download_path
      */
     private function download_photo($photo_url, $download_path) {
+        $date_string = $this->date_now_string();
+        $head = "[$date_string] $this->blog_name > $this->file_name";
         $output = @fopen($download_path, "wb");
         if ($output == FALSE) {
-            $date_string = $this->date_now_string();
-            echo "[$date_string] $this->blog_name > ... could not open file at path: " . $download_path . "!\n";
+            $tail = "error: could not open file at path: $download_path!";
+            $pad = $this->pad_string($head, $tail);
+            fwrite(STDERR, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_RED . $tail . TERM_RESET . PHP_EOL);
 
             return;
         }
+
+        $tail = "downloading";
+        $pad = $this->pad_string($head, $tail);
+        fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . $tail);
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $photo_url);
@@ -263,26 +297,30 @@ class TumblrDownloader {
 
         $error = curl_error($ch);
         if (!empty($error)) {
-            $date_string = $this->date_now_string();
-            echo "[$date_string] $this->blog_name > ... an error occured: " . $error . "\n";
-        }
-        else {
-            $this->counter++;
-
-            $date_string = $this->date_now_string();
-            $counter_string = sprintf("%03d", $this->counter);
-            echo "[$date_string] $this->blog_name > ... downloaded [$counter_string]\n";
+            $tail = "error: $error";
+            $pad = $this->pad_string($head, $tail);
+            fwrite(STDERR, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_RED . $tail . TERM_RESET . PHP_EOL);
+            curl_close($ch);
+            fclose($output);
+            return;
         }
 
         curl_close($ch);
         fclose($output);
 
+        // apply wallfiler if required
         if ($this->wallfilter) {
             $result = $this->filter_wallpapers($download_path);
             if ($result) {
-                $this->counter--;
+                return;
             }
         }
+
+        $this->counter_downloaded++;
+        $counter_string = sprintf("%03d", $this->counter_downloaded);
+        $tail = "downloaded [$counter_string]";
+        $pad = $this->pad_string($head, $tail);
+        fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_GREEN . $tail . TERM_RESET . PHP_EOL);
     }
 
     /** filter_wallpapers
@@ -304,35 +342,38 @@ class TumblrDownloader {
         if ($image_data) {
             $width = $image_data[0];
             $height = $image_data[1];
-            $ratio = $width/$height;
+            $ratio = round($width/$height, 2);
 
             if ($width < $height) {
                 $deletion_flag = true;
-                $deletion_reason = 'Portrait photo';
+                $deletion_reason = 'portrait';
             } 
             else if ($width < MIN_WIDTH) {
                 $deletion_flag = true;
-                $deletion_reason = "Width too small: $width < " . MIN_WIDTH;
+                $deletion_reason = "width too small: $width < " . MIN_WIDTH;
             } 
             else if ($ratio < MIN_RATIO) {
                 $deletion_flag = true;
-                $deletion_reason = "Ratio too small: $ratio < " . MIN_RATIO;
+                $deletion_reason = "ratio too small: $ratio < " . MIN_RATIO;
             } 
             else if ($ratio > MAX_RATIO) {
                 $deletion_flag = true;
-                $deletion_reason = "Ratio too big: $ratio > " . MAX_RATIO;
+                $deletion_reason = "ratio too big: $ratio > " . MAX_RATIO;
             }
         }
         else {
             // file is not an image
             $deletion_flag = true;
-            $deletion_reason = 'Not an image';
+            $deletion_reason = 'not an image';
         }
 
         if ($deletion_flag) {
             // file marked for deletion - delete it
             $date_string = $this->date_now_string();
-            echo "[$date_string] $this->blog_name > ... deleting photo - " . $deletion_reason . "!\n";
+            $head = "[$date_string] $this->blog_name > $this->file_name";
+            $tail = "skipped: $deletion_reason!";
+            $pad = $this->pad_string($head, $tail);
+            fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_YELLOW . $tail . TERM_RESET . PHP_EOL);
             unlink($download_path);
         }
 
@@ -391,42 +432,53 @@ class TumblrDownloader {
                         }
                     }
 
-                    $file_name = $year.$month.$day."_".$pathinfo['basename']; // yyyymmdd_basename.extension
+                    $this->file_name = $year.$month.$day."_".$pathinfo['basename']; // yyyymmdd_basename.extension
+                    fwrite(STDOUT, TERM_SAVE_POSITION);
+                    $date_string = $this->date_now_string();
+                    $head = "[$date_string] $this->blog_name > $this->file_name";
 
                     if (empty($pathinfo['extension'])) {
                         // no winner found - skipping photo
-                        $date_string = $this->date_now_string();
-                        echo "[$date_string] $this->blog_name > " . $file_name . " - skipping photo - no valid url found!\n";
+                        $tail = "skipped: no valid url found!";
+                        $pad = $this->pad_string($head, $tail);
+                        fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_YELLOW . $tail . TERM_RESET . PHP_EOL);
 
                         continue;
                     }
-                    if (in_array($pathinfo['extension'], $this->blacklist)) {
+                    $extension = strtolower($pathinfo['extension']);
+                    if (in_array($extension, $this->blacklist)) {
                         // extension is denied - skipping photo
-                        $date_string = $this->date_now_string();
-                        echo "[$date_string] $this->blog_name > " . $file_name . " - skipping photo - blacklisted '" . $pathinfo['extension'] . "'!\n";
+                        $tail = "skipped: blacklisted '$extension'!";
+                        $pad = $this->pad_string($head, $tail);
+                        fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_YELLOW . $tail . TERM_RESET . PHP_EOL);
 
                         continue;
                     }
-                    if (count($this->whitelist) != 0 && !in_array($pathinfo['extension'], $this->whitelist)) {
+                    if (count($this->whitelist) != 0 && !in_array($extension, $this->whitelist)) {
                         // extension is not allowed - skipping photo
-                        $date_string = $this->date_now_string();
-                        echo "[$date_string] $this->blog_name > " . $file_name . " - skipping photo - '" . $pathinfo['extension'] . "' is not in the whitelist!\n";
+                        $tail = "skipped: '$extension' is not in the whitelist!";
+                        $pad = $this->pad_string($head, $tail);
+                        fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_YELLOW . $tail . TERM_RESET . PHP_EOL);
 
                         continue;
                     }
 
-                    $date_string = $this->date_now_string();
-                    echo "[$date_string] $this->blog_name > $file_name\n";
+                    $tail = "preparing";
+                    $pad = $this->pad_string($head, $tail);
+                    fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . $tail);
 
-                    $download_path = $current_directory.DIRECTORY_SEPARATOR.$file_name; // concat download_directory with file_name
+                    $download_path = $current_directory.DIRECTORY_SEPARATOR.$this->file_name; // concat download_directory with file_name
+
+                    $this->counter_processed++;
 
                     $found = false;
                     if (is_file($download_path)) {
                         // file already exist - abort and exit
                         $found = true;
 
-                        $date_string = $this->date_now_string();
-                        echo "[$date_string] $this->blog_name > ... already exists!\n";
+                        $tail = "already exists!";
+                        $pad = $this->pad_string($head, $tail);
+                        fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_GREEN . $tail . TERM_RESET . PHP_EOL);
 
                         if (!$this->continue) {
                             return;
@@ -466,7 +518,7 @@ class TumblrDownloader {
 
         if (is_null($json_output) || $json_output->meta->status == 404) {
             $date_string = $this->date_now_string();
-            echo "[$date_string] $this->blog_name > ERROR: Could not find blog named '$this->blog_name'!\n";
+            fwrite(STDERR, "[$date_string] $this->blog_name > " . TERM_UNDERLINE . TERM_COLOR_RED . "ERROR:" . TERM_RESET . " Could not find blog named '$this->blog_name'!" . PHP_EOL);
 
             return array();
         }
