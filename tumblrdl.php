@@ -308,14 +308,6 @@ class TumblrDownloader {
         curl_close($ch);
         fclose($output);
 
-        // apply wallfiler if required
-        if ($this->wallfilter) {
-            $result = $this->filter_wallpapers($download_path);
-            if ($result) {
-                return;
-            }
-        }
-
         $this->counter_downloaded++;
         $counter_string = sprintf("%03d", $this->counter_downloaded);
         $tail = "downloaded [$counter_string]";
@@ -326,58 +318,56 @@ class TumblrDownloader {
     /** filter_wallpapers
      *
      * @since 0.5
-     * @description deletes the file at the given path if it is not a suitable candidate for a wallpaper:
+     * @description returns whether to download image at given url if it is a suitable candidate for a wallpaper.
      * conditions:
-     * - it must be an image
      * - the image must be landscape (width > height)
      * - it must have a ratio between MIN_RATIO and MAX_RATIO
      * - it must be larger than MIN_WIDTH
      * @param string $download_path
-     * @param boolean whether the file was deleted
+     * @param boolean whether the file should be downloaded
      */
-    private function filter_wallpapers($download_path) {
-        $deletion_flag = false;
-        $deletion_reason = 'unknown';
-        $image_data = @getimagesize($download_path);
+    private function filter_wallpapers($photo_url) {
+        $download_flag = true;
+        $rejection_reason = 'unknown';
+
+        $image_data = @getimagesize($photo_url);
         if ($image_data) {
             $width = $image_data[0];
             $height = $image_data[1];
             $ratio = round($width/$height, 2);
 
             if ($width < $height) {
-                $deletion_flag = true;
-                $deletion_reason = 'portrait';
+                $download_flag = false;
+                $rejection_reason = 'portrait';
             } 
             else if ($width < MIN_WIDTH) {
-                $deletion_flag = true;
-                $deletion_reason = "width too small: $width < " . MIN_WIDTH;
+                $download_flag = false;
+                $rejection_reason = "width too small: $width < " . MIN_WIDTH;
             } 
             else if ($ratio < MIN_RATIO) {
-                $deletion_flag = true;
-                $deletion_reason = "ratio too small: $ratio < " . MIN_RATIO;
+                $download_flag = false;
+                $rejection_reason = "ratio too small: $ratio < " . MIN_RATIO;
             } 
             else if ($ratio > MAX_RATIO) {
-                $deletion_flag = true;
-                $deletion_reason = "ratio too big: $ratio > " . MAX_RATIO;
+                $download_flag = false;
+                $rejection_reason = "ratio too big: $ratio > " . MAX_RATIO;
             }
         }
         else {
             // file is not an image
-            $deletion_flag = true;
-            $deletion_reason = 'not an image';
+            $download_flag = false;
+            $rejection_reason = 'not an image';
         }
 
-        if ($deletion_flag) {
-            // file marked for deletion - delete it
+        if (!$download_flag) {
             $date_string = $this->date_now_string();
             $head = "[$date_string] $this->blog_name > $this->file_name";
-            $tail = "skipped: $deletion_reason!";
+            $tail = "skipped: $rejection_reason!";
             $pad = $this->pad_string($head, $tail);
             fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . TERM_COLOR_YELLOW . $tail . TERM_RESET . PHP_EOL);
-            unlink($download_path);
         }
 
-        return $deletion_flag;
+        return $download_flag;
     }
 
     /** loop_through_posts
@@ -418,6 +408,16 @@ class TumblrDownloader {
                     
                     $photo_url = $photo->original_size->url; // retrieve original size - preferred size
                     $pathinfo = pathinfo($photo_url); // retrieve path info (basename, extension, ...)
+
+                    $this->file_name = $year.$month.$day."_".$pathinfo['basename']; // yyyymmdd_basename.extension
+                    fwrite(STDOUT, TERM_SAVE_POSITION);
+                    $date_string = $this->date_now_string();
+                    $head = "[$date_string] $this->blog_name > $this->file_name";
+
+                    $this->counter_processed++;
+                    $tail = "preparing";
+                    $pad = $this->pad_string($head, $tail);
+                    fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . $tail);
                     
                     if (empty($pathinfo['extension'])) {
                         // if no extension (invalid photo) - proceed with alternative sizes
@@ -431,11 +431,6 @@ class TumblrDownloader {
                             }
                         }
                     }
-
-                    $this->file_name = $year.$month.$day."_".$pathinfo['basename']; // yyyymmdd_basename.extension
-                    fwrite(STDOUT, TERM_SAVE_POSITION);
-                    $date_string = $this->date_now_string();
-                    $head = "[$date_string] $this->blog_name > $this->file_name";
 
                     if (empty($pathinfo['extension'])) {
                         // no winner found - skipping photo
@@ -463,14 +458,14 @@ class TumblrDownloader {
                         continue;
                     }
 
-                    $tail = "preparing";
-                    $pad = $this->pad_string($head, $tail);
-                    fwrite(STDOUT, TERM_RESTORE_POSITION . $head . $pad . $tail);
+                    if ($this->wallfilter) {
+                        if (!$this->filter_wallpapers($photo_url)) {
+                            continue;
+                        }
+                    }
 
                     $download_path = $current_directory.DIRECTORY_SEPARATOR.$this->file_name; // concat download_directory with file_name
-
-                    $this->counter_processed++;
-
+                    
                     $found = false;
                     if (is_file($download_path)) {
                         // file already exist - abort and exit
