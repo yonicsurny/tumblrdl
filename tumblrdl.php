@@ -7,7 +7,7 @@
  * For more information use the source, Luke!.
  * @see http://www.tumblr.com/api/
  * 
- * @version 0.6
+ * @version 0.7
  * @author saeros <yonic.surny@gmail.com>
  *
  * Copyright (c) 2012 saeros
@@ -44,15 +44,26 @@ define('MIN_PAD',               10);
 define('API_LIMIT',             20);
 define('MAX_RATIO',             1.8);
 define('MIN_RATIO',             1.3);
-define('MIN_WIDTH',             800);
-define('TERM_RESET',            "\033[0m");
-define('TERM_UNDERLINE',        "\033[4m");
-define('TERM_COLOR_RED',        "\033[31m");
-define('TERM_COLOR_BLUE',       "\033[34m");
-define('TERM_COLOR_GREEN',      "\033[32m");
-define('TERM_COLOR_YELLOW',     "\033[33m");
-define('TERM_SAVE_POSITION',    "\0337");
-define('TERM_RESTORE_POSITION', "\0338");
+define('MIN_WIDTH',             1024);
+if (posix_isatty(STDOUT)) {
+    define('TERM_RESET',            "\033[0m");
+    define('TERM_UNDERLINE',        "\033[4m");
+    define('TERM_COLOR_RED',        "\033[31m");
+    define('TERM_COLOR_BLUE',       "\033[34m");
+    define('TERM_COLOR_GREEN',      "\033[32m");
+    define('TERM_COLOR_YELLOW',     "\033[33m");
+    define('TERM_SAVE_POSITION',    "\0337");
+    define('TERM_RESTORE_POSITION', "\0338");
+} else {
+    define('TERM_RESET',            "");
+    define('TERM_UNDERLINE',        "");
+    define('TERM_COLOR_RED',        "");
+    define('TERM_COLOR_BLUE',       "");
+    define('TERM_COLOR_GREEN',      "");
+    define('TERM_COLOR_YELLOW',     "");
+    define('TERM_SAVE_POSITION',    "");
+    define('TERM_RESTORE_POSITION', PHP_EOL);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -260,8 +271,11 @@ class TumblrDownloader {
      * @return string
      */
     private function pad_string($head, $tail) {
-        $term_cols = intval(`tput cols`);
-        $length = $term_cols - strlen($head) - strlen($tail);
+        $length = 0;
+        if (posix_isatty(STDOUT)) {
+            $term_cols = intval(`tput cols`);
+            $length = $term_cols - strlen($head) - strlen($tail);
+        }
         $length = ($length > MIN_PAD ? $length : MIN_PAD);
         return str_repeat('.', $length);
     }

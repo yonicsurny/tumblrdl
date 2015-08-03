@@ -7,7 +7,7 @@ declare -a arr=(
 	"brainmess" 
 	"bonjourlesgeeks" 
 	"chersvoisins"
-	)
+)
 
 ###############################################################################
 
@@ -20,6 +20,6 @@ for (( i = 0; i < $count ; i++ )); do
     printf "\n**** Processing[$((i+1))/$count]: ${arr[$i]} ****\n\n"
 
     # run downloader for each tumblr in array
-    eval "php tumblrdl.php -b ${arr[$i]} -u"
+    eval "php tumblrdl.php -b ${arr[$i]} -u --wallfilter --whitelist=jpg,jpeg,png"
 
 done
