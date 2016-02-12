@@ -59,7 +59,7 @@ Output:
 	  - photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension
 	  - if you use filters (wallfilter, black/whitelist) you may end up with empty folders as they are created before the download (room for improvement).
 	  - the script checks first if the file's extension is in the blacklist and then in the whitelist therefore if you both allow and deny an extension it will be denied.
-	  - the script converts extension to lowercase so you don't have to worray wheter it is JPG or jpg...
+	  - the script converts extension to lowercase so you don't have to worry whether it is JPG or jpg...
 
 
 ## Configuration
