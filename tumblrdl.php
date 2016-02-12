@@ -7,7 +7,7 @@
  * For more information use the source, Luke!.
  * @see http://www.tumblr.com/api/
  * 
- * @version 0.7
+ * @version 0.8
  * @author saeros <yonic.surny@gmail.com>
  *
  * Copyright (c) 2012 saeros
@@ -39,12 +39,11 @@
 // ini_set('display_errors', 1);
 
 date_default_timezone_set('Europe/Brussels');
-define('API_KEY',               'REPLACE_ME');
-define('MIN_PAD',               10);
-define('API_LIMIT',             20);
-define('MAX_RATIO',             1.8);
-define('MIN_RATIO',             1.3);
-define('MIN_WIDTH',             1024);
+define('MIN_PAD',                   10);
+define('API_LIMIT',                 20);
+define('MAX_RATIO',                 1.8);
+define('MIN_RATIO',                 1.3);
+define('MIN_WIDTH',                 1024);
 if (posix_isatty(STDOUT)) {
     define('TERM_RESET',            "\033[0m");
     define('TERM_UNDERLINE',        "\033[4m");
@@ -93,43 +92,41 @@ class TumblrDownloader {
     private $whitelist;
     private $blacklist;
     private $file_name;
+
+    private $api_key;
     
     function __construct($arguments, $arguments_count, $options) {
         // test for usage and print help
         if (array_key_exists("help", $options) || array_key_exists("h", $options)) {
-            fwrite(STDOUT, TERM_UNDERLINE . "Usage:" . TERM_RESET . " php $arguments[0] -b <blog_name>" . PHP_EOL . PHP_EOL);
-
-            fwrite(STDOUT, "\t-b <blog_name> (or --blog <blogname>)\t" . TERM_COLOR_YELLOW . "*required*" . TERM_RESET . " the blog name (e.g 'brainmess')" . PHP_EOL);
-            fwrite(STDOUT, "\t-o=<offset> (or --offset=<offset>)\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the number of posts to skip before starting download (e.g. 100)" . PHP_EOL);
-            fwrite(STDOUT, "\t-l=<limit> (or --limit=<limit>)\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the number of post parsed in each run - by default 20 (e.g. 50)" . PHP_EOL);
-            fwrite(STDOUT, "\t-d=<path> (or --directory=<path>)\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the path to the download directory - by default script directory (e.g. /Users/username/Desktop)" . PHP_EOL);
-            fwrite(STDOUT, "\t-u (or --unlimited)\t\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " a flag to tell the script to download every photo available (might take a while ^^)" . PHP_EOL);
-            fwrite(STDOUT, "\t-c (or --continue)\t\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " a flag to tell the script to continue even if it encounters existing files" . PHP_EOL);
-            fwrite(STDOUT, "\t--wallfilter\t\t\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " apply filter for only downloading photos that might be used as wallpapers (checks: landscape, ratio, dimensions)" . PHP_EOL);
-            fwrite(STDOUT, "\t--blacklist=<extensions>\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " extensions of files " . TERM_UNDERLINE . "NOT" . TERM_RESET . " to download (separated by commas (,) with no space)" . PHP_EOL);
-            fwrite(STDOUT, "\t--whitelist=<extensions>\t\t" . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " extensions of files to download (separated by commas (,) with no space)" . PHP_EOL);
-            fwrite(STDOUT, "\t-h (or --help)\t\t\t\tprints this help" . PHP_EOL . PHP_EOL);
+            fwrite(STDOUT, TERM_UNDERLINE . "Usage:" . TERM_RESET . " $arguments[0] -b <blog_name>" . PHP_EOL . PHP_EOL);
+            fwrite(STDOUT, "  -b <blog_name> (or --blog <blogname>)  " . TERM_COLOR_YELLOW . "*required*" . TERM_RESET . " the blog name (e.g 'brainmess')" . PHP_EOL);
+            fwrite(STDOUT, "  -o=<offset> (or --offset=<offset>)     " . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the number of posts to skip before starting download (e.g. 100)" . PHP_EOL);
+            fwrite(STDOUT, "  -l=<limit> (or --limit=<limit>)        " . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the number of post parsed in each run - by default 20 (e.g. 50)" . PHP_EOL);
+            fwrite(STDOUT, "  -d=<path> (or --directory=<path>)      " . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " the path to the download directory - by default script directory (e.g. /Users/username/Desktop)" . PHP_EOL);
+            fwrite(STDOUT, "  -u (or --unlimited)                    " . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " a flag to tell the script to download every photo available (might take a while ^^)" . PHP_EOL);
+            fwrite(STDOUT, "  -c (or --continue)                     " . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " a flag to tell the script to continue even if it encounters existing files" . PHP_EOL);
+            fwrite(STDOUT, "  --wallfilter                           " . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " apply filter for only downloading photos that might be used as wallpapers (checks: landscape, ratio, dimensions)" . PHP_EOL);
+            fwrite(STDOUT, "  --blacklist=<extensions>               " . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " extensions of files " . TERM_UNDERLINE . "NOT" . TERM_RESET . " to download (separated by commas (,) with no space)" . PHP_EOL);
+            fwrite(STDOUT, "  --whitelist=<extensions>               " . TERM_COLOR_BLUE . "*optional*" . TERM_RESET . " extensions of files to download (separated by commas (,) with no space)" . PHP_EOL);
+            fwrite(STDOUT, "  -h (or --help)                         prints this help" . PHP_EOL . PHP_EOL);
 
             fwrite(STDOUT, TERM_UNDERLINE . "Examples:" . TERM_RESET . PHP_EOL . PHP_EOL);
-
-            fwrite(STDOUT, "\tphp $arguments[0] -b brainmess -u (download every photo available)" . PHP_EOL);
-            fwrite(STDOUT, "\tphp $arguments[0] -b brainmess -l=50 (download the last 50 photos)" . PHP_EOL);
-            fwrite(STDOUT, "\tphp $arguments[0] -b brainmess --wallfilter --whitelist=jpg,png (download photos with extension jpg or png that are fit for being wallpapers)" . PHP_EOL);
-            fwrite(STDOUT, "\tphp $arguments[0] --blog brainmess --offset=100 --limit=50 --directory=/Users/username/Desktop (download 50 photos on the desktop by skipping the last 100 posts)" . PHP_EOL);
-            fwrite(STDOUT, "\t..." . PHP_EOL . PHP_EOL);
+            fwrite(STDOUT, "  $arguments[0] -b brainmess -u (download every photo available)" . PHP_EOL);
+            fwrite(STDOUT, "  $arguments[0] -b brainmess -l=50 (download the last 50 photos)" . PHP_EOL);
+            fwrite(STDOUT, "  $arguments[0] -b brainmess --wallfilter --whitelist=jpg,png (download photos with extension jpg or png that are fit for being wallpapers)" . PHP_EOL);
+            fwrite(STDOUT, "  $arguments[0] --blog brainmess --offset=100 --limit=50 --directory=/Users/username/Desktop (download 50 photos on the desktop by skipping the last 100 posts)" . PHP_EOL);
+            fwrite(STDOUT, "  ..." . PHP_EOL . PHP_EOL);
 
             fwrite(STDOUT, TERM_UNDERLINE . "Notes:" . TERM_RESET . PHP_EOL . PHP_EOL);
-
-            fwrite(STDOUT, "\t- short and long options can be used interchangeably (if available)" . PHP_EOL);
-            fwrite(STDOUT, "\t- do not specify an option more than once (unexpected behavior might occur)" . PHP_EOL);
-            fwrite(STDOUT, "\t- the 'offset' and 'limit' refers to the post count, not the photo count (!) as there may be more than one photo in a post." . PHP_EOL);
-            fwrite(STDOUT, "\t- download directory path must be absolute (/Users/username/Desktop instead of ~/Desktop)" . PHP_EOL);
-            fwrite(STDOUT, "\t- once the script encounters an already downloaded photo (test for an existing file) it will stop (except when -c or --continue option is used)" . PHP_EOL);
-            fwrite(STDOUT, "\t- if the original photo is not available, the script try an download the next available bigger size." . PHP_EOL);
-            fwrite(STDOUT, "\t- photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension" . PHP_EOL);
-            fwrite(STDOUT, "\t- if you use filters (wallfilter, black/whitelist) you may end up with empty folders as they are created before the download (room for improvement)." . PHP_EOL . PHP_EOL);
-            fwrite(STDOUT, "\t- the script checks first if the file's extension is in the blacklist and then in the whitelist therefore if you both allow and deny an extension it will be denied." . PHP_EOL);
-            fwrite(STDOUT, "\t- the script converts extension to lowercase so you don't have to worray wheter it is JPG or jpg..." . PHP_EOL);
+            fwrite(STDOUT, "  - configuration resides in the config.json file" . PHP_EOL);
+            fwrite(STDOUT, "  - the 'offset' and 'limit' refers to the post count, not the photo count (!) as there may be more than one photo in a post." . PHP_EOL);
+            fwrite(STDOUT, "  - download directory path must be absolute (/Users/username/Desktop instead of ~/Desktop)" . PHP_EOL);
+            fwrite(STDOUT, "  - once the script encounters an already downloaded photo (test for an existing file) it will stop (except when -c or --continue option is used)" . PHP_EOL);
+            fwrite(STDOUT, "  - if the original photo is not available, the script try an download the next available bigger size." . PHP_EOL);
+            fwrite(STDOUT, "  - photos are downloaded following this architecture path_to_download_directory/blog_name/yyyy/mm/yyyymmdd_basename.extension" . PHP_EOL);
+            fwrite(STDOUT, "  - if you use filters (wallfilter, black/whitelist) you may end up with empty folders as they are created before the download (room for improvement)." . PHP_EOL);
+            fwrite(STDOUT, "  - the script checks first if the file's extension is in the blacklist and then in the whitelist therefore if you both allow and deny an extension it will be denied." . PHP_EOL);
+            fwrite(STDOUT, "  - the script converts extension to lowercase so you don't have to worray wheter it is JPG or jpg..." . PHP_EOL);
 
             die(0);
         }
@@ -138,7 +135,20 @@ class TumblrDownloader {
         // test presence of required fields (blog_name)
         if (!array_key_exists("b", $options) && !array_key_exists("blog", $options)) {
             fwrite(STDERR, TERM_UNDERLINE . TERM_COLOR_RED . "ERROR:" . TERM_RESET . " Bad usage!" . PHP_EOL);
-            fwrite(STDERR, "\tsee php $arguments[0] -h (or --help) for usage" . PHP_EOL);
+            fwrite(STDERR, "  see $arguments[0] -h (or --help) for usage" . PHP_EOL);
+
+            die(1);
+        }
+
+
+        // test presence of config.json and validity
+        $raw_configuration = @file_get_contents("config.json");
+        $configuration = json_decode($raw_configuration, true);
+        $this->api_key = $configuration['API_KEY'];
+        if (is_null($this->api_key) || empty($this->api_key) || strcmp($this->api_key, "REPLACE_ME") == 0) {
+            fwrite(STDERR, TERM_UNDERLINE . TERM_COLOR_RED . "ERROR:" . TERM_RESET . " Invalid configuration!" . PHP_EOL);
+            fwrite(STDERR, "  see $arguments[0] -h (or --help) for usage" . PHP_EOL);
+            fwrite(STDERR, "  The configuration file 'config.json' doesn't exist or keys are missing/invalid" . PHP_EOL);
 
             die(1);
         }
@@ -161,7 +171,7 @@ class TumblrDownloader {
         }
         if (!is_dir($this->download_directory)) {
             $date_string = $this->date_now_string();
-            fwrite(STDERR, "[$date_string] $this->blog_name > " . TERM_UNDERLINE . TERM_COLOR_RED . "ERROR:" . TERM_RESET . " given download directory path ($this->download_directory) doesn't exist, is not a directory or is not accesible (possibly permission denied)!" . PHP_EOL);
+            fwrite(STDERR, "[$date_string] > " . TERM_UNDERLINE . TERM_COLOR_RED . "ERROR:" . TERM_RESET . " given download directory path ($this->download_directory) doesn't exist, is not a directory or is not accessible (possibly permission denied)!" . PHP_EOL);
 
             die(1);
         }
@@ -171,7 +181,7 @@ class TumblrDownloader {
             mkdir($this->download_directory); // create blog directory
 
             $date_string = $this->date_now_string();
-            fwrite(STDOUT, "[$date_string] $this->blog_name > created blog directory!" . PHP_EOL);
+            fwrite(STDOUT, "[$date_string] > created blog directory!" . PHP_EOL);
         }
 
 
@@ -259,7 +269,7 @@ class TumblrDownloader {
      * @return string
      */
     private function date_now_string() {
-        return date("Y-m-d H:i:s");
+        return date("H:i:s");
     }
 
     /** pad_string
@@ -513,7 +523,7 @@ class TumblrDownloader {
     private function get_blog_posts() {
         $blog_url = "http://api.tumblr.com/v2/blog/" 
         . $this->blog_name 
-        . ".tumblr.com/posts/photo?api_key=" . API_KEY 
+        . ".tumblr.com/posts/photo?api_key=" . $this->api_key 
         . "&limit=" . $this->limit 
         . "&offset=" . $this->offset;
 
