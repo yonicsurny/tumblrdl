@@ -1,4 +1,4 @@
-[![GitHub license](https://img.shields.io/github/license/saeros/tumblrdl.svg)](https://github.com/saeros/tumblrdl/blob/master/LICENSE) [![GitHub tag](https://img.shields.io/github/tag/saeros/tumblrdl.svg)](https://github.com/saeros/tumblrdl/releases/latest) [![Twitter Follow](https://img.shields.io/twitter/follow/saeros01.svg?style=social)](https://twitter.com/saeros01)
+[![GitHub license](https://img.shields.io/github/license/saeros/tumblrdl.svg)](https://github.com/saeros/tumblrdl/blob/master/LICENSE) [![GitHub tag](https://img.shields.io/github/tag/saeros/tumblrdl.svg)](https://github.com/saeros/tumblrdl/releases/latest) [![Twitter Follow](https://img.shields.io/twitter/follow/yonicsurny.svg?style=social)](https://twitter.com/yonicsurny)
 
 # TumblrDownloader
 
